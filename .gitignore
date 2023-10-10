@@ -1,6 +1,6 @@
 /backend/asr
 /backend/data
-/backend/draft
+# /backend/draft
 /backend/uploaddata.log
 /backend/logfile.log
 
