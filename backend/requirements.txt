@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+motor
+ffmpeg-python
+scann
+torch
+# transformers
+googletrans==4.0.0rc1
+Pillow
+pandas
+wget
+librosa
+elasticsearch==7.9.1
+retrying
+git+https://github.com/openai/CLIP.git

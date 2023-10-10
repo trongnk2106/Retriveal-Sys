@@ -1,0 +1,4 @@
+backend/asr
+backend/data/asr
+backend/draft
+**/__pycache__/

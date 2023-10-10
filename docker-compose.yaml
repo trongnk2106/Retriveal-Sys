@@ -1,0 +1,69 @@
+version: "3"
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/package-lock.json:/app/package-lock.json
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./backend:/app
+      - /mlcv:/mlcv
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']  # Use only GPU 0
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0  # Only use GPU 0
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    depends_on:
+      - indexer  # Add this dependency
+      - elasticsearch
+
+  indexer:
+    image: curlimages/curl:latest  # Using a Docker image with curl
+    volumes:
+      - /mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend/data:/data
+      - /mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend:/mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend
+      - ./init.sh:/init.sh  # Mount the initialization script
+    command: ["/bin/sh", "/init.sh"]  # Run the initialization script   
+    depends_on:
+      - elasticsearch
+    networks:
+      - mynetwork  # Define a custom network
+
+  elasticsearch:  # Add Elasticsearch service
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend/data
+      - /mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend:/mlcv/WorkingSpace/Personals/nhanntt/AIC23/RetrievalSystem/backend
+    networks:
+      - mynetwork  # Define a custom network
+volumes:
+  elasticsearch_data: 
+
+networks:
+  mynetwork:
